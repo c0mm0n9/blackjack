@@ -20,7 +20,7 @@ public:
     void saveGame(const std::string& filename);
     void loadGame(const std::string& filename);
     void setDifficulty(Difficulty d);
-
+    Deck* getGameDeck() const;
 private:
     Deck* gameDeck_;
     HumanPlayer* player_;

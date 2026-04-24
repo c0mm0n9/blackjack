@@ -9,11 +9,12 @@ public:
     explicit Deck(int numberOfDecks);
     ~Deck();
 
-    void shuffle();
+    void shuffle(int seed);
     Card* drawCard();
 
 private:
     Card** cards_;
+    int totalCards_;
     int topCardIndex_;
 };
 

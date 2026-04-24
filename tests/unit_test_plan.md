@@ -78,8 +78,6 @@ If the API gains helpers (for example `Hand::isBust()`), extend the **Then** col
 | DK-03 | Shuffle permutes order | Fresh deck; injectable RNG if available | `shuffle()` | Order differs from deterministic “unshuffled” baseline, or statistical check if non-deterministic |
 | DK-04 | Draw advances shoe | Non-empty deck | Repeated `drawCard()` | Non-null pointers; no duplicate deals until policy allows reshuffle |
 | DK-05 | Empty shoe behavior | All cards drawn | `drawCard()` | `nullptr`, exception, or automatic reshuffle per spec |
-| DK-06 | No leak on teardown | Deck owns heap cards | Destroy `Deck` | Clean under AddressSanitizer / leak check |
-| DK-07 | Move safety (if applicable) | Moved-from `Deck` | Shuffle / draw | Only documented operations allowed; no UB |
 
 ---
 

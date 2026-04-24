@@ -2,7 +2,13 @@
 
 namespace blackjack {
 
-Card::Card() = default;
+Card::Card(Suit suit, Rank rank)
+    : suit_(suit), rank_(rank) {}
+
 Card::~Card() = default;
 
-} // namespace blackjack
+bool Card::operator==(const Card& other) const {
+    return suit_ == other.suit_ && rank_ == other.rank_;
+}
+
+}

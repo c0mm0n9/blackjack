@@ -11,11 +11,14 @@ public:
 
     void addCard(Card* c);
     int getScore() const;
+    bool isBust() const;
+    bool isNaturalBlackjack() const;
     void clearHand();
 
 private:
     Card** cards_;
     int cardCount_;
+    int capacity_;
 };
 
 } // namespace blackjack
