@@ -11,6 +11,8 @@ public:
 
     void shuffle(int seed);
     Card* drawCard();
+    int getTotalCards() const;
+    int getRemainingCards() const;
 
 private:
     Card** cards_;
