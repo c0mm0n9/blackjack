@@ -1,17 +1,29 @@
 #include "GameManager.h"
 
+#include "Card.h"
 #include "Dealer.h"
 #include "Deck.h"
+#include "Hand.h"
 #include "HumanPlayer.h"
 
+#include <iostream>
 #include <random>
 
 namespace blackjack {
 
+/// @brief Default constructor. Initializes all pointers to nullptr.
 GameManager::GameManager()
-    : gameDeck_(nullptr), player_(nullptr), dealer_(nullptr), currentDifficulty_(Difficulty::NORMAL) {}
-GameManager::~GameManager() = default;
+    : gameDeck_(nullptr), player_(nullptr), dealer_(nullptr),
+      currentDifficulty_(Difficulty::NORMAL) {}
 
+/// @brief Destructor. Frees owned heap objects.
+GameManager::~GameManager() {
+    delete gameDeck_;
+    delete player_;
+    delete dealer_;
+}
+
+/// @brief Start a new game session: choose difficulty, create deck/player/dealer, enter game loop.
 void GameManager::startGame() {
     std::cout << "===== Blackjack =====\n";
 
@@ -19,24 +31,26 @@ void GameManager::startGame() {
     int d;
     std::cout << "Select difficulty (0 = Easy, 1 = Normal, 2 = Hard): ";
     std::cin >> d;
-    setDifficulty(static_cast<Difficulty>(d));
 
-    // Create deck + shuffle
-    gameDeck_ = new Deck();
-    gameDeck_->shuffle();
+    if (d < 0 || d > 2) {
+        std::cout << "Invalid choice, defaulting to Normal.\n";
+        d = 1;
+    }
+    setDifficulty(static_cast<Difficulty>(d));
 
     // Create player
     std::string name;
     std::cout << "Enter your name: ";
     std::cin >> name;
-    player_ = new HumanPlayer(name);
+    player_ = new HumanPlayer(name, 100);
 
     // Create dealer
-    dealer_ = new Dealer();
+    dealer_ = new Dealer(currentDifficulty_);
 
     gameLoop();
 }
 
+/// @brief Main game loop. Handles rounds until the player quits or runs out of chips.
 void GameManager::gameLoop() {
     bool running = true;
 
@@ -47,128 +61,133 @@ void GameManager::gameLoop() {
         player_->clearHand();
         dealer_->clearHand();
 
-        // Deal initial cards
-        player_->hit(gameDeck_->draw());
-        dealer_->hit(gameDeck_->draw());
-        player_->hit(gameDeck_->draw());
-        dealer_->hit(gameDeck_->draw());
+        // Place bet
+        int bet = player_->placeBet();
+        if (bet == 0) {
+            std::cout << "No bet placed. Skipping round.\n";
+        } else {
+            // Deal initial cards (2 each)
+            player_->receiveCard(gameDeck_->drawCard());
+            dealer_->receiveCard(gameDeck_->drawCard());
+            player_->receiveCard(gameDeck_->drawCard());
+            dealer_->receiveCard(gameDeck_->drawCard());
 
-        // Show table
-        dealer_->printHand(true);
-        player_->printState();
+            // Show initial hands (dealer's hole card hidden)
+            std::cout << "Dealer shows: score " << dealer_->getHand().getScore()
+                      << " (hole card hidden)\n";
+            std::cout << player_->getName() << " has: score "
+                      << player_->getScore() << "\n";
 
-        // Player turn
-        while (!player_->isBusted() && !player_->isStanding()) {
-            char action = player_->decideAction(); // 'h' or 's'
-            if (action == 'h') {
-                player_->hit(gameDeck_->draw());
+            // Player turn — keep asking until bust or stand
+            bool playerDone = false;
+            while (!playerDone) {
+                if (player_->getHand().isBust()) {
+                    std::cout << player_->getName() << " busts!\n";
+                    playerDone = true;
+                } else {
+                    player_->makeDecision();
+                    // Check if the player chose to hit (score changed means a card was added)
+                    // For simplicity, we just ask and the player re-checks
+                    // We use the score to determine — if makeDecision printed "hits",
+                    // we need to deal a card. Since makeDecision only prints, we handle
+                    // the hit/stand logic here via a helper approach.
+                    // Actually, let's use a different approach: read input directly.
+                    char choice;
+                    std::cout << player_->getName() << ", your score is "
+                              << player_->getScore() << ". Hit (h) or Stand (s)? ";
+                    std::cin >> choice;
+
+                    if (choice == 'h' || choice == 'H') {
+                        player_->receiveCard(gameDeck_->drawCard());
+                        std::cout << player_->getName() << " hits. Score: "
+                                  << player_->getScore() << "\n";
+                    } else {
+                        std::cout << player_->getName() << " stands.\n";
+                        playerDone = true;
+                    }
+                }
+            }
+
+            // Dealer turn (only if player didn't bust)
+            if (!player_->getHand().isBust()) {
+                dealer_->revealHiddenCard();
+                std::cout << "\nDealer reveals hole card. Score: "
+                          << dealer_->getScore() << "\n";
+
+                while (dealer_->shouldHit()) {
+                    dealer_->receiveCard(gameDeck_->drawCard());
+                    std::cout << "Dealer hits. Score: " << dealer_->getScore() << "\n";
+                }
+                std::cout << "Dealer stands.\n";
+            }
+
+            // Determine result
+            std::cout << "\n===== Result =====\n";
+            int pScore = player_->getScore();
+            int dScore = dealer_->getScore();
+
+            if (player_->getHand().isBust()) {
+                std::cout << player_->getName() << " busts! Dealer wins.\n";
+                // Chips already deducted by placeBet
+            } else if (dealer_->getHand().isBust()) {
+                std::cout << "Dealer busts! " << player_->getName() << " wins!\n";
+                player_->addChips(bet * 2);
+            } else if (pScore > dScore) {
+                std::cout << player_->getName() << " wins!\n";
+                player_->addChips(bet * 2);
+            } else if (pScore < dScore) {
+                std::cout << "Dealer wins.\n";
             } else {
-                player_->stand();
+                std::cout << "Push. Bet returned.\n";
+                player_->addChips(bet);
             }
         }
 
-        // Dealer turn
-        while (dealer_->shouldHit(currentDifficulty_)) {
-            dealer_->hit(gameDeck_->draw());
-        }
+        std::cout << "Chips: " << player_->getChips() << "\n";
 
-        // Show final
-        std::cout << "\n===== Final Hands =====\n";
-        dealer_->printHand(false);
-        player_->printState();
-
-        // Determine result
-        int p = player_->handValue();
-        int d = dealer_->handValue();
-
-        if (player_->isBusted()) {
-            std::cout << player_->getName() << " busts! Dealer wins.\n";
-        } else if (dealer_->isBusted()) {
-            std::cout << "Dealer busts! " << player_->getName() << " wins.\n";
-        } else if (p > d) {
-            std::cout << player_->getName() << " wins!\n";
-        } else if (p < d) {
-            std::cout << "Dealer wins.\n";
+        // Check if player is bankrupt
+        if (player_->getChips() <= 0) {
+            std::cout << "You're out of chips! Game over.\n";
+            running = false;
         } else {
-            std::cout << "Push.\n";
-        }
-
-        // Continue?
-        char c;
-        std::cout << "\nPlay again? (y/n): ";
-        std::cin >> c;
-        if (c != 'y' && c != 'Y') running = false;
-
-        // Shuffle if low
-        if (gameDeck_->cardsRemaining() < 20) {
-            gameDeck_->shuffle();
+            char c;
+            std::cout << "Play again? (y/n): ";
+            std::cin >> c;
+            if (c != 'y' && c != 'Y') running = false;
         }
     }
+
+    std::cout << "Thanks for playing!\n";
 }
 
-void GameManager::saveGame(const std::string& filename) {
-    std::ofstream file(filename);
-    if (!file) {
-        std::cout << "Failed to save game.\n";
-        return;
-    }
-
-    // Save difficulty
-    file << static_cast<int>(currentDifficulty_) << "\n";
-
-    // Save deck
-    file << gameDeck_->serialize() << "\n";
-
-    // Save dealer
-    file << dealer_->serialize() << "\n";
-
-    // Save player
-    file << player_->serialize() << "\n";
-
-    std::cout << "Game saved to " << filename << "\n";
+/// @brief Save the current game state to a file (placeholder).
+void GameManager::saveGame() {
+    std::cout << "Save game not yet implemented.\n";
 }
 
-void GameManager::loadGame(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file) {
-        std::cout << "Save file not found.\n";
-        return;
-    }
-
-    int diff;
-    file >> diff;
-    currentDifficulty_ = static_cast<Difficulty>(diff);
-
-    // Load deck
-    gameDeck_ = new Deck();
-    gameDeck_->deserialize(file);
-
-    // Load dealer
-    dealer_ = new Dealer();
-    dealer_->deserialize(file);
-
-    // Load player
-    player_ = new HumanPlayer("");
-    player_->deserialize(file);
-
-    std::cout << "Game loaded from " << filename << "\n";
-
-    gameLoop();
+/// @brief Load a game state from a file (placeholder).
+void GameManager::loadGame() {
+    std::cout << "Load game not yet implemented.\n";
 }
 
+/// @brief Set the difficulty and create a new deck with the appropriate number of decks.
+/// @param d Difficulty enum value.
 void GameManager::setDifficulty(Difficulty d) {
+    currentDifficulty_ = d;
+    delete gameDeck_;
     int numberOfDecks;
     if (d == Difficulty::EASY) {
         numberOfDecks = 1;
     } else if (d == Difficulty::NORMAL) {
         numberOfDecks = 4;
-    } else if (d == Difficulty::HARD) {
+    } else {
         numberOfDecks = 8;
     }
     gameDeck_ = new Deck(numberOfDecks);
-    gameDeck_->shuffle(std::random_device{}());
+    gameDeck_->shuffle(static_cast<int>(std::random_device{}()));
 }
 
+/// @brief Return the current game deck pointer.
 Deck* GameManager::getGameDeck() const {
     return gameDeck_;
 }
