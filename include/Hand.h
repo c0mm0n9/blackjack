@@ -14,6 +14,7 @@ public:
     bool isBust() const;
     bool isNaturalBlackjack() const;
     void clearHand();
+    bool isSoft() const;
 
 private:
     Card** cards_;
