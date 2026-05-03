@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <fstream>
 #include "GameManager.h"
 #include "Deck.h"
 #include "HumanPlayer.h"
@@ -14,17 +15,17 @@ static std::string tempFile(const std::string& name) {
 TEST_CASE("GM-01: setDifficulty", "[game_manager][GM-01]") {
     GameManager gm;
 
-    gm.setDifficulty(Difficulty::Hard);
-    REQUIRE(gm.getDifficulty() == Difficulty::Hard);
+    gm.setDifficulty(Difficulty::HARD);
+    REQUIRE(gm.getDifficulty() == Difficulty::HARD);
 
-    gm.setDifficulty(Difficulty::Easy);
-    REQUIRE(gm.getDifficulty() == Difficulty::Easy);
+    gm.setDifficulty(Difficulty::EASY);
+    REQUIRE(gm.getDifficulty() == Difficulty::EASY);
 }
 
 TEST_CASE("GM-02: startGame", "[game_manager][GM-02]") {
     GameManager gm;
 
-    gm.startGame();
+    gm.startGame(Difficulty::EASY, "TestPlayer");
 
     REQUIRE(gm.getGameDeck() != nullptr);
     REQUIRE(gm.getPlayer() != nullptr);
@@ -36,7 +37,7 @@ TEST_CASE("GM-02: startGame", "[game_manager][GM-02]") {
 
 TEST_CASE("GM-03: gameLoop exit", "[game_manager][GM-03]") {
     GameManager gm;
-    gm.startGame();
+    gm.startGame(Difficulty::EASY, "TestPlayer");
 
     // Simulate immediate exit by forcing player to choose "quit"
     gm.forceExitForTest(true);
@@ -46,7 +47,7 @@ TEST_CASE("GM-03: gameLoop exit", "[game_manager][GM-03]") {
 
 TEST_CASE("GM-04: saveGame", "[game_manager][GM-04]") {
     GameManager gm;
-    gm.startGame();
+    gm.startGame(Difficulty::EASY, "TestPlayer");
 
     std::string file = tempFile("save_ok");
 
@@ -63,7 +64,7 @@ TEST_CASE("GM-04: saveGame", "[game_manager][GM-04]") {
 
 TEST_CASE("GM-05: loadGame", "[game_manager][GM-05]") {
     GameManager gm;
-    gm.startGame();
+    gm.startGame(Difficulty::EASY, "TestPlayer");
 
     std::string file = tempFile("load_ok");
 
@@ -93,9 +94,9 @@ TEST_CASE("GM-06: loadGame corrupt file", "[game_manager][GM-06]") {
 
 TEST_CASE("GM-07: Destructor", "[game_manager][GM-07]") {
     // This test ensures no memory leaks or double frees occur
-    REQUIRE_NOTHROW({
+    REQUIRE_NOTHROW([] {
         GameManager* gm = new GameManager();
-        gm->startGame();
+        gm->startGame(Difficulty::EASY, "TestPlayer");
         delete gm;
-    });
+    }());
 }

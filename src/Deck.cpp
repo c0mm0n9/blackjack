@@ -15,18 +15,25 @@ Deck::Deck(int numberOfDecks) : cards_(nullptr), totalCards_(0), topCardIndex_(0
     totalCards_ = numberOfDecks * 52;
     cards_ = new Card*[totalCards_];
 
+    static const Rank kRanks[] = {
+        Rank::ACE,   Rank::TWO,   Rank::THREE, Rank::FOUR,  Rank::FIVE,
+        Rank::SIX,   Rank::SEVEN, Rank::EIGHT, Rank::NINE,  Rank::TEN,
+        Rank::JACK,  Rank::QUEEN, Rank::KING,
+    };
+
     int idx = 0;
     for (int deck = 0; deck < numberOfDecks; ++deck) {
         for (int suit = 0; suit < 4; ++suit) {
-            for (int rank = 0; rank < 13; ++rank) {
-                cards_[idx++] = new Card(static_cast<Suit>(suit), static_cast<Rank>(rank));
+            for (Rank r : kRanks) {
+                cards_[idx++] = new Card(static_cast<Suit>(suit), r);
             }
         }
     }
 }
 
 Deck::~Deck() {
-    for (int i = 0; i < totalCards_; ++i) {
+    // Drawn cards [0, topCardIndex_) are owned by Hands (or already freed); do not delete.
+    for (int i = topCardIndex_; i < totalCards_; ++i) {
         delete cards_[i];
     }
     delete[] cards_;

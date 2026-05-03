@@ -19,9 +19,15 @@ set(
 
 add_library(bjack STATIC ${BJ_SOURCES})
 target_include_directories(bjack PUBLIC "${BJ_INCLUDE}")
+if(MSVC)
+    target_compile_options(bjack PRIVATE /utf-8)
+endif()
 
 add_executable(blackjack src/main.cpp)
 target_link_libraries(blackjack PRIVATE bjack)
+if(MSVC)
+    target_compile_options(blackjack PRIVATE /utf-8)
+endif()
 
 option(BJ_BUILD_TESTS "Build Catch2 unit tests" ON)
 
@@ -48,6 +54,9 @@ if(BJ_BUILD_TESTS)
         tests/test_nonfunctional.cpp
     )
     target_link_libraries(blackjack_tests PRIVATE bjack Catch2::Catch2WithMain)
+    if(MSVC)
+        target_compile_options(blackjack_tests PRIVATE /utf-8)
+    endif()
 
     include(CTest)
     add_test(NAME blackjack_tests COMMAND blackjack_tests)

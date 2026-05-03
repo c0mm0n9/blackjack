@@ -24,7 +24,7 @@ public:
     void receiveCard(Card* c);
 
     /// @brief Clear all cards from the player's hand between rounds.
-    void clearHand();
+    virtual void clearHand();
 
     /// @brief Return a read-only reference to the player's hand.
     /// @return Const reference to the internal Hand object.

@@ -14,6 +14,8 @@ public:
     explicit Dealer(Difficulty level = Difficulty::NORMAL);
     ~Dealer() override;
 
+    void clearHand() override;
+
     /// @brief Decide whether to hit or stand based on house rules.
     ///        Hits on soft 17 or below, stands on hard 17+.
     void makeDecision() override;

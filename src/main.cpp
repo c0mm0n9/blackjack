@@ -1,1 +1,7 @@
-int main() { return 0; }
+#include "GameManager.h"
+
+int main() {
+    blackjack::GameManager game;
+    game.startGame();
+    return 0;
+}
