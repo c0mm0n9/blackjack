@@ -108,7 +108,9 @@ classDiagram
 
 ## Build
 
-From the repository root:
+From the repository root, you can build using either **CMake** or the **Makefile**:
+
+### Using CMake directly:
 
 ```text
 cmake -S . -B build
@@ -116,6 +118,32 @@ cmake --build build
 ```
 
 The first configure downloads **Catch2** (used only for tests) unless you pass `-DBJ_BUILD_TESTS=OFF`.
+
+### Using Make (g++ only, no tests):
+
+Ensure you have `g++` (with C++17 support) and `make` installed.
+
+```bash
+# Build release version (optimized)
+make release
+
+# Build debug version (with symbols)
+make debug
+
+# Build default (release)
+make
+
+# Clean build artifacts
+make clean
+```
+
+The compiled executable will be named `blackjack` (or `blackjack.exe` on Windows with MinGW).
+
+#### Manual compilation without Make:
+
+```bash
+g++ -std=c++17 -Iinclude -O2 src/main.cpp src/Card.cpp src/Hand.cpp src/Deck.cpp src/Player.cpp src/HumanPlayer.cpp src/Dealer.cpp src/GameManager.cpp -o blackjack
+```
 
 ## Unit tests
 
@@ -125,7 +153,7 @@ After a successful build, run all registered tests with **CTest** (recommended):
 ctest --test-dir build -C Debug --output-on-failure
 ```
 
-Catch2 tag filters apply only when you invoke the binary yourself, for example:
+Catch2 tag filters apply only when you invoke the test binary directly, for example:
 
 ```text
 build/blackjack_tests "[deck]"
