@@ -72,4 +72,32 @@ void Hand::clearHand() {
     cardCount_ = 0;
 }
 
+/// @brief Check if the hand is "soft" (at least one ace counted as 11).
+/// @return true if at least one ace contributes 11 to the score.
+bool Hand::isSoft() const {
+    int score = 0;
+    int aceCount = 0;
+    for (int i = 0; i < cardCount_; i++) {
+        int rank = static_cast<int>(cards_[i]->rank_);
+        if (rank == static_cast<int>(Rank::ACE)) {
+            score += 11;
+            aceCount++;
+        } else if (
+            rank == static_cast<int>(Rank::TEN) ||
+            rank == static_cast<int>(Rank::JACK) ||
+            rank == static_cast<int>(Rank::QUEEN) ||
+            rank == static_cast<int>(Rank::KING)) {
+            score += 10;
+        } else {
+            score += rank;
+        }
+    }
+    int acesAsEleven = aceCount;
+    while (score > 21 && acesAsEleven > 0) {
+        score -= 10;
+        acesAsEleven--;
+    }
+    return acesAsEleven > 0;
+}
+
 } // namespace blackjack

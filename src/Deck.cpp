@@ -46,4 +46,14 @@ Card* Deck::drawCard() {
     return cards_[topCardIndex_++];
 }
 
+/// @brief Return the total number of cards in the shoe.
+int Deck::getTotalCards() const {
+    return totalCards_;
+}
+
+/// @brief Return the number of cards not yet drawn.
+int Deck::getRemainingCards() const {
+    return totalCards_ - topCardIndex_;
+}
+
 } // namespace blackjack
