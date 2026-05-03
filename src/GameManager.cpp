@@ -75,13 +75,6 @@ void GameManager::gameLoop() {
                     std::cout << player_->getName() << " busts!\n";
                     playerDone = true;
                 } else {
-                    player_->makeDecision();
-                    // Check if the player chose to hit (score changed means a card was added)
-                    // For simplicity, we just ask and the player re-checks
-                    // We use the score to determine — if makeDecision printed "hits",
-                    // we need to deal a card. Since makeDecision only prints, we handle
-                    // the hit/stand logic here via a helper approach.
-                    // Actually, let's use a different approach: read input directly.
                     char choice;
                     std::cout << player_->getName() << ", your score is "
                               << player_->getScore() << ". Hit (h) or Stand (s)? ";
