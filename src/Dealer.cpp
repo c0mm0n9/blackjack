@@ -15,6 +15,11 @@ Dealer::Dealer(Difficulty level)
 /// @brief Destructor. Hand cleanup is handled by the base class.
 Dealer::~Dealer() = default;
 
+void Dealer::clearHand() {
+    holeCardRevealed_ = false;
+    Player::clearHand();
+}
+
 /// @brief Decide whether to hit or stand based on house rules.
 ///        Hits on soft 17 or below, stands on hard 17+.
 void Dealer::makeDecision() {
@@ -29,6 +34,9 @@ void Dealer::makeDecision() {
 ///        House rule: hit on soft 17 or below, stand on hard 17+.
 /// @return true if the dealer's hand requires another card.
 bool Dealer::shouldHit() const {
+    if (hand_.isBust()) {
+        return false;
+    }
     int score = hand_.getScore();
     // Stand on hard 17 or above
     if (score >= 17) {

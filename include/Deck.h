@@ -13,6 +13,7 @@ public:
     Card* drawCard();
     int getTotalCards() const;
     int getRemainingCards() const;
+    int size() const { return getRemainingCards(); }
 
 private:
     Card** cards_;

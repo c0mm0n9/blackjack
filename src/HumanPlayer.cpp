@@ -46,7 +46,8 @@ int HumanPlayer::placeBet() {
 void HumanPlayer::makeDecision() {
     char choice;
     while (true) {
-        std::cout << name_ << ", your score is " << getScore()
+        std::cout << name_ << ", your hand: " << hand_.formatCards()
+                  << " — score " << getScore()
                   << ". Hit (h) or Stand (s)? ";
         std::cin >> choice;
         // Clear any remaining input on the line

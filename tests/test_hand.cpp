@@ -87,6 +87,23 @@ TEST_CASE("H-08: addCard ownership", "[hand][H-08]") {
     REQUIRE(hand.getScore() == 18);
 }
 
+TEST_CASE("H-10: Natural blackjack (Ace + face / 10)", "[hand][H-10]") {
+    blackjack::Hand h1;
+    h1.addCard(new blackjack::Card(blackjack::Suit::DIAMONDS, blackjack::Rank::JACK));
+    h1.addCard(new blackjack::Card(blackjack::Suit::DIAMONDS, blackjack::Rank::ACE));
+    REQUIRE(h1.isNaturalBlackjack());
+
+    blackjack::Hand h2;
+    h2.addCard(new blackjack::Card(blackjack::Suit::HEARTS, blackjack::Rank::ACE));
+    h2.addCard(new blackjack::Card(blackjack::Suit::SPADES, blackjack::Rank::KING));
+    REQUIRE(h2.isNaturalBlackjack());
+
+    blackjack::Hand h3;
+    h3.addCard(new blackjack::Card(blackjack::Suit::CLUBS, blackjack::Rank::ACE));
+    h3.addCard(new blackjack::Card(blackjack::Suit::CLUBS, blackjack::Rank::NINE));
+    REQUIRE(!h3.isNaturalBlackjack());
+}
+
 TEST_CASE("H-09: Destructor / clear with ownership", "[hand][H-09]") {
     // Verify that Hand destructor properly cleans up cards (no crash / leak)
     {

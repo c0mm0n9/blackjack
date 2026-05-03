@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Deck.h"
+#include "Card.h"
 
 // Planned cases: tests/unit_test_plan.md — section 3 `Deck`
 
@@ -22,6 +23,10 @@ TEST_CASE("DK-01: Construction size", "[deck][DK-01]") {
     }
 
     REQUIRE_THROWS_AS(deck.drawCard(), std::runtime_error);
+
+    for (blackjack::Card* c : drawn) {
+        delete c;
+    }
 }
 
 TEST_CASE("DK-02: Construction invalid input", "[deck][DK-02]") {
@@ -43,6 +48,8 @@ TEST_CASE("DK-03: Shuffle changes order", "[deck][DK-03]") {
         if (shuffledCard != baselineCard) {
             anyDifferent = true;
         }
+        delete shuffledCard;
+        delete baselineCard;
     }
     REQUIRE(anyDifferent);
 }
@@ -51,12 +58,13 @@ TEST_CASE("DK-04: Draw consumes card", "[deck][DK-04]") {
     blackjack::Deck deck(1);
     auto* card = deck.drawCard();
     REQUIRE(card != nullptr);
+    delete card;
 }
 
 TEST_CASE("DK-05: Draw empty deck", "[deck][DK-05]") {
     blackjack::Deck deck(1);
     for (int i = 0; i < 52; i++) {
-        deck.drawCard();
+        delete deck.drawCard();
     }
     REQUIRE_THROWS_AS(deck.drawCard(), std::runtime_error);
 }
